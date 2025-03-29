@@ -11,42 +11,42 @@ AudioManager::AudioManager() {
         return;
     }
     
-    loadSounds();
-    initialized = true;
+    load_sounds();
+    initialized_ = true;
 }
 
 AudioManager::~AudioManager() {
-    if(initialized) cleanup();
+    if(initialized_) cleanup();
 }
 
-void AudioManager::loadSounds() {
-    tickSound = Mix_LoadWAV("sounds/tick.wav");
-    if(!tickSound) std::cerr << "Failed to load tick sound\n";
+void AudioManager::load_sounds() {
+    click_sound_ = Mix_LoadWAV("sounds/click.wav");
+    if(!click_sound_) std::cerr << "Failed to load tick sound\n";
 
-    selectSound = Mix_LoadWAV("sounds/select.wav");
-    if(!selectSound) std::cerr << "Failed to load select sound\n";
+    select_sound_ = Mix_LoadWAV("sounds/select.wav");
+    if(!select_sound_) std::cerr << "Failed to load select sound\n";
 
-    backSound = Mix_LoadWAV("sounds/back.wav");
-    if(!backSound) std::cerr << "Failed to load back sound\n";
+    back_sound_ = Mix_LoadWAV("sounds/back.wav");
+    if(!back_sound_) std::cerr << "Failed to load back sound\n";
 }
 
 void AudioManager::cleanup() {
-    if(tickSound) Mix_FreeChunk(tickSound);
-    if(selectSound) Mix_FreeChunk(selectSound);
-    if(backSound) Mix_FreeChunk(backSound);
+    if(click_sound_) Mix_FreeChunk(click_sound_);
+    if(select_sound_) Mix_FreeChunk(select_sound_);
+    if(back_sound_) Mix_FreeChunk(back_sound_);
     
     Mix_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
-void AudioManager::playTick() const {
-    if(tickSound) Mix_PlayChannel(-1, tickSound, 0);
+void AudioManager::play_tick() const {
+    if(click_sound_) Mix_PlayChannel(-1, click_sound_, 0);
 }
 
-void AudioManager::playSelect() const {
-    if(selectSound) Mix_PlayChannel(-1, selectSound, 0);
+void AudioManager::play_select() const {
+    if(select_sound_) Mix_PlayChannel(-1, select_sound_, 0);
 }
 
-void AudioManager::playBack() const {
-    if(backSound) Mix_PlayChannel(-1, backSound, 0);
+void AudioManager::play_back() const {
+    if(back_sound_) Mix_PlayChannel(-1, back_sound_, 0);
 }

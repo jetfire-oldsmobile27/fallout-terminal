@@ -2,6 +2,7 @@
 #include "terminal_ui.h"
 #include "audio_manager.h"
 #include <filesystem>
+#include <vector>
 
 class FileSystemNavigator {
 public:
@@ -9,9 +10,10 @@ public:
     void navigate(const std::string& path);
 
 private:
-    TerminalUI& ui;
-    AudioManager& audio;
+    TerminalUI& ui_;
+    AudioManager& audio_;
     
-    void showContent(const std::string& path) const;
-    void showError(const std::string& message) const;
+    std::vector<MenuItem> create_menu_items(const std::string& path) const;
+    void show_content(const std::string& path) const;
+    void show_error(const std::string& message) const;
 };

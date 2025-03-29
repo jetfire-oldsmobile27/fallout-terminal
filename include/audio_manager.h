@@ -8,19 +8,19 @@ public:
     AudioManager();
     ~AudioManager();
     
-    void playTick() const;
-    void playSelect() const;
-    void playBack() const;
+    void play_tick() const;
+    void play_select() const;
+    void play_back() const;
 
     AudioManager(const AudioManager&) = delete;
     AudioManager& operator=(const AudioManager&) = delete;
 
 private:
-    void loadSounds();
+    void load_sounds();
     void cleanup();
 
-    Mix_Chunk* tickSound = nullptr;
-    Mix_Chunk* selectSound = nullptr;
-    Mix_Chunk* backSound = nullptr;
-    bool initialized = false;
+    Mix_Chunk* click_sound_ = nullptr;
+    Mix_Chunk* select_sound_ = nullptr;
+    Mix_Chunk* back_sound_ = nullptr;
+    bool initialized_ = false;
 };

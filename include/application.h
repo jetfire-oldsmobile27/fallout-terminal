@@ -3,9 +3,9 @@
 #include "audio_manager.h"
 #include "menu_builder.h"
 #include "file_system_navigator.h"
-#include <stack>
-#include <fstream>
 #include <atomic>
+#include <chrono>
+#include <stack>
 
 class Application {
 public:
@@ -13,25 +13,22 @@ public:
     void run();
 
 private:
-    TerminalUI ui;
-    AudioManager audio;
-    FileSystemNavigator fsNav;
-    std::stack<std::pair<std::string, std::vector<MenuItem>>> menuStack;
-    MenuItem rootMenu;
-    size_t selectedIndex = 0;
-    bool running = true;
+    TerminalUI ui_;
+    AudioManager audio_;
+    FileSystemNavigator file_system_navigator_;
+    std::stack<std::pair<std::string, std::vector<MenuItem>>> menu_stack_;
+    MenuItem root_menu_;
+    size_t selected_index_ = 0;
+    std::atomic<bool> is_running_{true};
+    std::atomic<bool> needs_redraw_{true};
+    std::chrono::steady_clock::time_point last_redraw_;
 
-    void loadConfig();
-    void generateDefaultConfig() const;
-    void mainLoop();
-    void processInput();
-    void moveUp();
-    void moveDown();
-    void selectItem();
-    void goBack();
-    void handleFunction(const std::string& func);
+    void load_config();
+    void generate_default_config() const;
+    void main_loop();
+    void process_input();
+    void handle_function(const std::string& function_name);
     
-    const std::string& currentTitle() const;
-    const std::vector<MenuItem>& currentItems() const;
-    std::atomic<bool> needsRedraw{true};
+    const std::string& current_title() const;
+    const std::vector<MenuItem>& current_items() const;
 };

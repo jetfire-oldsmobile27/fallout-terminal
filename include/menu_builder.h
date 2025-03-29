@@ -6,8 +6,8 @@ namespace json = boost::json;
 
 class MenuBuilder {
 public:
-    static MenuItem buildFromJSON(const json::value& rootValue);
+    static MenuItem build_from_json(const json::value& root_value);
     
 private:
-    static void parseMenuItem(const json::object& obj, MenuItem& item);
+    static void parse_menu_item(const json::object& obj, MenuItem& item);
 };

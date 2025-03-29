@@ -1,17 +1,17 @@
 #include "menu_builder.h"
 
-MenuItem MenuBuilder::buildFromJSON(const json::value& rootValue) {
+MenuItem MenuBuilder::build_from_json(const json::value& root_value) {
     MenuItem root;
-    const auto& rootObj = rootValue.as_object();
+    const auto& root_obj = root_value.as_object();
     
-    if(rootObj.contains("title")) {
-        root.name = json::value_to<std::string>(rootObj.at("title"));
+    if(root_obj.contains("name")) {
+        root.name = json::value_to<std::string>(root_obj.at("name"));
     }
     
-    if(rootObj.contains("items")) {
-        for(const auto& item : rootObj.at("items").as_array()) {
+    if(root_obj.contains("submenu")) {
+        for(const auto& item : root_obj.at("submenu").as_array()) {
             MenuItem child;
-            parseMenuItem(item.as_object(), child);
+            parse_menu_item(item.as_object(), child);
             root.submenu.push_back(child);
         }
     }
@@ -19,7 +19,7 @@ MenuItem MenuBuilder::buildFromJSON(const json::value& rootValue) {
     return root;
 }
 
-void MenuBuilder::parseMenuItem(const json::object& obj, MenuItem& item) {
+void MenuBuilder::parse_menu_item(const json::object& obj, MenuItem& item) {
     if(obj.contains("name")) {
         item.name = json::value_to<std::string>(obj.at("name"));
     }
@@ -31,7 +31,7 @@ void MenuBuilder::parseMenuItem(const json::object& obj, MenuItem& item) {
     if(obj.contains("submenu")) {
         for(const auto& subitem : obj.at("submenu").as_array()) {
             MenuItem child;
-            parseMenuItem(subitem.as_object(), child);
+            parse_menu_item(subitem.as_object(), child);
             item.submenu.push_back(child);
         }
     }
