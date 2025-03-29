@@ -1,7 +1,8 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
-#include <iostream>
+#include <vector>
+#include <random>
 
 class AudioManager {
 public:
@@ -19,8 +20,9 @@ private:
     void load_sounds();
     void cleanup();
 
-    Mix_Chunk* click_sound_ = nullptr;
+    std::vector<Mix_Chunk*> click_sounds_; 
     Mix_Chunk* select_sound_ = nullptr;
     Mix_Chunk* back_sound_ = nullptr;
     bool initialized_ = false;
+    mutable std::mt19937 rng_;
 };

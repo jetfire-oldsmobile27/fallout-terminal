@@ -1,4 +1,5 @@
 #include "application.h"
+#include <iostream> 
 #include <boost/json/src.hpp>
 #include <filesystem>
 #include <thread>

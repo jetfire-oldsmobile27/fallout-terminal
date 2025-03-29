@@ -105,7 +105,7 @@ int TerminalUI::get_key_input() const {
     if (select(1, &set, NULL, NULL, &timeout) > 0) {
         int ch = getchar();
         if (ch == 27) {
-            getchar(); // Skip '['
+            getchar(); 
             switch(getchar()) {
                 case 'A': return 'U';
                 case 'B': return 'D';
