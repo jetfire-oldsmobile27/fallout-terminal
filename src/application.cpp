@@ -90,7 +90,7 @@ void Application::process_input() {
         case 'U': 
             if (selected_index_ > 0) {
                 selected_index_--;
-                audio_.play_tick();
+                audio_.play_tick_async();
                 needs_redraw_ = true;
             }
             break;
@@ -98,7 +98,7 @@ void Application::process_input() {
         case 'D':
             if (selected_index_ + 1 < current_items().size()) {
                 selected_index_++;
-                audio_.play_tick();
+                audio_.play_tick_async();
                 needs_redraw_ = true;
             }
             break;
@@ -125,7 +125,7 @@ void Application::process_input() {
             if (menu_stack_.size() > 1) {
                 menu_stack_.pop();
                 selected_index_ = 0;
-                audio_.play_back();
+                audio_.play_back_async();
                 needs_redraw_ = true;
             }
             break;

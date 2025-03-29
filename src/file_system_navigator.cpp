@@ -75,14 +75,14 @@ void FileSystemNavigator::navigate(const std::string& path) {
             case 'U': 
                 if (selected > 0) {
                     selected--;
-                    audio_.play_tick();
+                    audio_.play_tick_async();
                 }
                 break;
                 
             case 'D':
                 if (selected < menu_items.size() - 1) {
                     selected++;
-                    audio_.play_tick();
+                    audio_.play_tick_async();
                 }
                 break;
                 
