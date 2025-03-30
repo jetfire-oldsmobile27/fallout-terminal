@@ -1,0 +1,17 @@
+{
+    "name": "Меню",
+    "submenu": [
+        {
+            "name": "Настройки",
+            "function": "settings"
+        },
+        {
+            "name": "Просмотр файлов",
+            "function": "filesystem C:\\"
+        },
+        {
+            "name": "Выход",
+            "function": "exit"
+        }
+    ]
+}
