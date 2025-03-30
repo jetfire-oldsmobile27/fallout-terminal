@@ -85,9 +85,17 @@ void AudioManager::play_tick_async() const {
 }
 
 void AudioManager::play_select_async() const {
-    std::async(std::launch::async, [this](){ play_select(); });
+    std::lock_guard<std::mutex> lock(sound_mutex_);
+    active_sounds_.remove_if([](auto& f) {
+        return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    });
+    active_sounds_.push_back(std::async(std::launch::async, [this]{ play_select(); }));
 }
 
 void AudioManager::play_back_async() const {
-    std::async(std::launch::async, [this](){ play_back(); });
+    std::lock_guard<std::mutex> lock(sound_mutex_);
+    active_sounds_.remove_if([](auto& f) {
+        return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    });
+    active_sounds_.push_back(std::async(std::launch::async, [this]{ play_back(); }));
 }

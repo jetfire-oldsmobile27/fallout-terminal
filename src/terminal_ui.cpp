@@ -4,7 +4,7 @@
 #include <iostream>
 
 TerminalUI::TerminalUI() {
-#ifdef WINDOWS
+#ifdef _WIN32
     hconsole_ = GetStdHandle(STD_OUTPUT_HANDLE);
     GetConsoleMode(hconsole_, &original_mode_);
 #else
@@ -14,7 +14,7 @@ TerminalUI::TerminalUI() {
 }
 
 TerminalUI::~TerminalUI() {
-#ifdef WINDOWS
+#ifdef _WIN32
     SetConsoleMode(hconsole_, original_mode_);
 #else
     tcsetattr(STDIN_FILENO, TCSANOW, &original_settings_);
@@ -22,7 +22,7 @@ TerminalUI::~TerminalUI() {
 }
 
 void TerminalUI::setup_terminal() const {
-#ifdef WINDOWS
+#ifdef _WIN32
     DWORD new_mode = original_mode_;
     new_mode &= ~ENABLE_ECHO_INPUT;
     SetConsoleMode(hconsole_, new_mode);
@@ -42,7 +42,7 @@ void TerminalUI::draw_menu(const std::string& title,
                          size_t selected) const {
     
     if(items.empty()) return;
-    selected = std::min(selected, items.size() - 1);
+    selected = (std::min)(selected, items.size() - 1);
     std::stringstream buffer;
     buffer << "\033[2J\033[1;1H";
     
@@ -73,7 +73,7 @@ void TerminalUI::draw_menu(const std::string& title,
 }
 
 int TerminalUI::get_terminal_width() const {
-#ifdef WINDOWS
+#ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(hconsole_, &csbi);
     return csbi.srWindow.Right - csbi.srWindow.Left + 1;
@@ -85,15 +85,19 @@ int TerminalUI::get_terminal_width() const {
 }
 
 int TerminalUI::get_key_input() const {
-#ifdef WINDOWS
+    #ifdef _WIN32
     if (_kbhit()) {
         int ch = _getch();
-        if (ch == 0xE0) {
+        if (ch == 0xE0 || ch == 0x00) { 
             switch (_getch()) {
                 case 72: return 'U';
-                case 80: return 'D';
+                case 80: return 'D'; 
+                case 75: return 'L'; 
+                case 77: return 'R';
             }
         }
+        if (ch == 13) return '\n';
+        if (ch == 8)  return 0x7F; 
         return ch;
     }
 #else

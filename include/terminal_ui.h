@@ -4,8 +4,14 @@
 #include <vector>
 #include <sstream>
 
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
 #include <conio.h>
+#define STDIN_FILENO 0 
+#define STDOUT_FILENO 1 
 #else
 #include <termios.h>
 #include <sys/ioctl.h>
@@ -28,7 +34,7 @@ private:
     void setup_terminal() const;
     int get_terminal_width() const;
     
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
     HANDLE hconsole_;
     DWORD original_mode_;
 #else

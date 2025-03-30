@@ -7,7 +7,13 @@
 #include <chrono>
 #include <stack>
 
-class Application {
+#ifdef _WIN32
+#define APP_EXPORT __declspec(dllexport)
+#else
+#define APP_EXPORT
+#endif
+
+class APP_EXPORT Application {
 public:
     Application();
     void run();

@@ -4,14 +4,10 @@ project(FalloutTerminal LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(WIN32)
-    add_definitions(-DWINDOWS)
-endif()
-
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost REQUIRED COMPONENTS json)
+# Conan автоматически добавит пути через CMakeDeps
 find_package(SDL2 REQUIRED)
-find_library(SDL2_MIXER_LIBRARY NAMES SDL2_mixer)
+find_package(SDL2_mixer REQUIRED)
+find_package(Boost REQUIRED COMPONENTS json)
 
 add_executable(FalloutTerminal
     src/main.cpp
@@ -24,21 +20,35 @@ add_executable(FalloutTerminal
 
 target_include_directories(FalloutTerminal PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${Boost_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIRS}
 )
 
 target_link_libraries(FalloutTerminal PRIVATE
     Boost::json
     SDL2::SDL2
-    ${SDL2_MIXER_LIBRARY}
+    SDL2_mixer::SDL2_mixer
 )
 
-add_custom_command(TARGET FalloutTerminal POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:FalloutTerminal>/sounds"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/sounds"
-        "$<TARGET_FILE_DIR:FalloutTerminal>/sounds"
-    COMMENT "Copying sounds directory to build folder"
-    VERBATIM
-)
+# Копирование ресурсов (звуки)
+if(EXISTS ${CMAKE_SOURCE_DIR}/sounds)
+    add_custom_command(TARGET FalloutTerminal POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:FalloutTerminal>/sounds
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/sounds
+            $<TARGET_FILE_DIR:FalloutTerminal>/sounds
+        COMMENT "Copying sounds directory"
+        VERBATIM
+    )
+endif()
+
+# Для Windows: автоматическое копирование DLL через Conan
+if(WIN32)
+    install(TARGETS FalloutTerminal
+        RUNTIME_DEPENDENCY_SET runtime_deps
+    )
+
+    install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/
+        DESTINATION .
+        FILES_MATCHING PATTERN "*.dll"
+    )
+endif()
