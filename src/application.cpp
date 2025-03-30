@@ -151,8 +151,8 @@ void Application::process_input() {
 }
 
 void Application::handle_function(const std::string &function_name) {
-    if (function_name.find("filesystem ") == 0)
-    {
+    ui_.needs_initial_draw_ = true; // force
+    if (function_name.find("filesystem ") == 0) {
         std::string path = function_name.substr(11);
         auto items = file_system_navigator_.get_menu_items(path);
         menu_stack_.push({"Файлы: " + path, items});

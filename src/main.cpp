@@ -4,7 +4,7 @@
 #endif
 
 int main(int argc, char* argv[]) {
-    (void)argc; (void)argv; //(!)no warnings
+    (void)argc; (void)argv; // no warnings(!)
     #ifdef _WIN32
     SetConsoleOutputCP(65001); // UTF-8
     SetConsoleCP(65001);

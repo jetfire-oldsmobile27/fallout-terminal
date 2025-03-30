@@ -30,8 +30,10 @@ public:
                  size_t prev_selected) const;
     int get_key_input() const;
     void clear_screen() const;
-
+    
+    mutable size_t last_item_count_ = 0;
     mutable bool needs_initial_draw_ = true;
+    mutable int last_term_width_ = 0;
 private:
     void setup_terminal() const;
     int get_terminal_width() const;

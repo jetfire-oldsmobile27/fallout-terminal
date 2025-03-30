@@ -62,6 +62,7 @@ std::vector<MenuItem> FileSystemNavigator::create_menu_items(const std::string& 
 
 
 void FileSystemNavigator::show_content(const std::string& path) const {
+    ui_.needs_initial_draw_ = true; // reset
     std::ifstream file(path);
     std::stringstream buffer;
     

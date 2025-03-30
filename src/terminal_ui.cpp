@@ -50,37 +50,49 @@ void TerminalUI::clear_screen() const
     std::cout << "\033[2J\033[1;1H" << std::flush;
 }
 
-void TerminalUI::draw_menu(const std::string& title,
-    const std::vector<MenuItem>& items,
+void TerminalUI::draw_menu(const std::string &title,
+    const std::vector<MenuItem> &items,
     size_t selected,
-    size_t prev_selected) const { 
-        
-    if(items.empty()) return;
+    size_t prev_selected) const {
 
-    std::stringstream buffer;
-    const int term_width = get_terminal_width();
+const int current_width = get_terminal_width();
+if (last_term_width_ != current_width) {
+needs_initial_draw_ = true;
+last_term_width_ = current_width;
+}
 
-    if(prev_selected != selected && prev_selected < items.size()) {
-    buffer << "\033[" << (6 + prev_selected) << ";1H" 
-    << "    " << items[prev_selected].name 
-    << "\033[K";
-    }
+std::stringstream buffer;
+const int& term_width = current_width;
+const size_t menu_lines = items.size() + 6; 
 
-    buffer << "\033[" << (6 + selected) << ";1H"
-    << "  > " << items[selected].name
-    << "\033[K";
+if (needs_initial_draw_ || items.size() != last_item_count_) {
+buffer << "\033[2J\033[H"; 
+needs_initial_draw_ = false;
+last_item_count_ = items.size();
+} else {
+buffer << "\033[H"; 
+for (size_t i = 0; i < menu_lines; ++i) {
+buffer << "\033[K\n"; 
+}
+buffer << "\033[" << menu_lines << "A"; 
+} 
 
-    if(needs_initial_draw_)  {
-    buffer << "\033[2J\033[H"
-    << Constants::YELLOW << std::string(term_width, '=') << Constants::RESET << "\n"
-    << std::string((term_width - Constants::HEADER.size())/2, ' ')
-    << Constants::GREEN << Constants::HEADER << Constants::RESET << "\n"
-    << Constants::YELLOW << std::string(term_width, '=') << Constants::RESET << "\n\n"
-    << Constants::GREEN << "> " << title << "\n\n";
-    needs_initial_draw_ = false;
-    }
+buffer << Constants::YELLOW << std::string(term_width, '=') << Constants::RESET << "\n"
+<< std::string((term_width - Constants::HEADER.size()) / 2, ' ')
+<< Constants::GREEN << Constants::HEADER << Constants::RESET << "\n"
+<< Constants::YELLOW << std::string(term_width, '=') << Constants::RESET << "\n\n"
+<< Constants::GREEN << "> " << title << "\n\n";
 
-    std::cout << buffer.str() << std::flush;
+for (size_t i = 0; i < items.size(); ++i) {
+buffer << (i == selected ? "  > " : "    ")
+<< items[i].name << "\033[K\n";
+}
+
+buffer << "\n"
+<< Constants::YELLOW
+<< std::string(term_width, '=') << Constants::RESET << "\n";
+
+std::cout << buffer.str() << std::flush;
 }
 
 int TerminalUI::get_terminal_width() const
@@ -88,7 +100,7 @@ int TerminalUI::get_terminal_width() const
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(hconsole_, &csbi);
-    return std::max(80, csbi.srWindow.Right - csbi.srWindow.Left + 1); // Минимум 80 символов
+    return std::max(80, csbi.srWindow.Right - csbi.srWindow.Left + 1);
 #else
     struct winsize size;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
