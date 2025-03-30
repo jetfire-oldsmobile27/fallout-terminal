@@ -1,0 +1,16 @@
+pkgname=vault-terminal
+pkgver=@PROJECT_VERSION@
+pkgrel=1
+pkgdesc="Vault-Tec Approved Terminal Interface"
+arch=('x86_64')
+url="http://www.vault-tec.com"
+license=('VaultTec_EULA')
+depends=('sdl2' 'sdl2_mixer' 'boost')
+source=("$pkgname-$pkgver.tar.zst")
+sha256sums=('SKIP')
+
+package() {
+    cd "$srcdir/$pkgname-$pkgver"
+    cmake -DCMAKE_INSTALL_PREFIX=/usr
+    make DESTDIR="$pkgdir/" install
+}
