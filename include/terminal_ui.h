@@ -26,10 +26,12 @@ public:
     
     void draw_menu(const std::string& title, 
                  const std::vector<MenuItem>& items,
-                 size_t selected) const;
+                 size_t selected,
+                 size_t prev_selected) const;
     int get_key_input() const;
     void clear_screen() const;
 
+    mutable bool needs_initial_draw_ = true;
 private:
     void setup_terminal() const;
     int get_terminal_width() const;

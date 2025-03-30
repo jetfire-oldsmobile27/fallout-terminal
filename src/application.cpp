@@ -4,50 +4,42 @@
 #include <filesystem>
 #include <thread>
 #include <fstream>
+#include <chrono>
+#include <thread>
+using namespace std::chrono_literals;
 
 Application::Application()
     : file_system_navigator_(ui_, audio_),
-      last_redraw_(std::chrono::steady_clock::now())
-{
+      last_redraw_(std::chrono::steady_clock::now()) {
+
     setlocale(LC_ALL, "ru_RU.UTF-8");
     load_config();
 
     menu_stack_.push({"Главное меню", root_menu_.submenu});
-    //needs_redraw_ = true;
+    // needs_redraw_ = true;
 }
 
-void Application::main_loop()
-{
-    using namespace std::chrono;
-    auto last_frame = steady_clock::now();
-
-    while (is_running_)
-    {
-        const auto now = steady_clock::now();
-        const auto delta = now - last_frame;
-
-        if (delta > 16ms)
-        {
-            if (needs_redraw_)
-            {
-                ui_.draw_menu(current_title(), current_items(), selected_index_);
-                needs_redraw_ = false;
-            }
-            last_frame = now;
+void Application::main_loop() {
+    while (is_running_) {
+        if (needs_redraw_) {
+            ui_.draw_menu(current_title(), 
+                         current_items(),
+                         selected_index_, 
+                         prev_selected_index_);
+            
+            prev_selected_index_ = selected_index_;
+            needs_redraw_ = false;
         }
-
         process_input();
-        std::this_thread::sleep_for(1ms);
+        std::this_thread::sleep_for(2ms);
     }
 }
 
-void Application::run()
-{
+void Application::run() {
     main_loop();
 }
 
-void Application::load_config()
-{
+void Application::load_config() {
     std::ifstream config_file(Constants::CONFIG_FILE);
     if (!config_file)
     {
@@ -69,8 +61,7 @@ void Application::load_config()
     }
 }
 
-void Application::generate_default_config() const
-{
+void Application::generate_default_config() const {
     json::object root;
     root["name"] = "Меню";
     json::array items;
@@ -98,13 +89,13 @@ void Application::generate_default_config() const
     output_file << json::serialize(root);
 }
 
-void Application::process_input()
-{
+void Application::process_input() {
     switch (ui_.get_key_input())
     {
     case 'U':
         if (selected_index_ > 0)
         {
+            prev_selected_index_ = selected_index_;
             selected_index_--;
             audio_.play_tick_async();
             needs_redraw_ = true;
@@ -114,6 +105,7 @@ void Application::process_input()
     case 'D':
         if (selected_index_ + 1 < current_items().size())
         {
+            prev_selected_index_ = selected_index_;
             selected_index_++;
             audio_.play_tick_async();
             needs_redraw_ = true;
@@ -158,18 +150,26 @@ void Application::process_input()
     }
 }
 
-void Application::handle_function(const std::string &function_name)
-{
+void Application::handle_function(const std::string &function_name) {
     if (function_name.find("filesystem ") == 0)
     {
-        file_system_navigator_.navigate(function_name.substr(11));
+        std::string path = function_name.substr(11);
+        auto items = file_system_navigator_.get_menu_items(path);
+        menu_stack_.push({"Файлы: " + path, items});
+        selected_index_ = 0;
+    }
+    else if (function_name.find("view_file ") == 0)
+    {
+        file_system_navigator_.show_content(function_name.substr(10));
+        if (!menu_stack_.empty())
+            menu_stack_.pop();
     }
     else if (function_name.find("cmd ") == 0)
     {
         ui_.clear_screen();
         std::string command = function_name.substr(4);
 
-#ifdef WINDOWS
+#ifdef _WIN32
         command = "cmd /c \"" + command + "\"";
 #else
         command = "sh -c \"" + command + "\"";
@@ -178,18 +178,22 @@ void Application::handle_function(const std::string &function_name)
         int result = system(command.c_str());
         std::cout << "\nКоманда выполнена с кодом: " << result
                   << "\nНажмите любую клавишу...";
-        getchar();
+
+        while (ui_.get_key_input() == -1)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
+
+    needs_redraw_ = true;
 }
 
-const std::string &Application::current_title() const
-{
+const std::string &Application::current_title() const {
     static std::string default_title = "Главное меню";
     return menu_stack_.empty() ? default_title : menu_stack_.top().first;
 }
 
-const std::vector<MenuItem> &Application::current_items() const
-{
+const std::vector<MenuItem> &Application::current_items() const {
     static std::vector<MenuItem> empty_items;
     return menu_stack_.empty() ? empty_items : menu_stack_.top().second;
 }

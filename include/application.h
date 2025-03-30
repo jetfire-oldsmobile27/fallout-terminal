@@ -28,6 +28,7 @@ private:
     std::atomic<bool> is_running_{true};
     std::atomic<bool> needs_redraw_{true};
     std::chrono::steady_clock::time_point last_redraw_;
+    size_t prev_selected_index_ = 0;
 
     void load_config();
     void generate_default_config() const;

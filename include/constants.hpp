@@ -16,6 +16,10 @@ namespace Constants {
 }
 
 struct MenuItem {
+    MenuItem() = default;
+    MenuItem(std::string n, std::string f = "") 
+        : name(std::move(n)), function(std::move(f)) {}
+    
     std::string name;
     std::string function;
     std::vector<MenuItem> submenu;

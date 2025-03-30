@@ -75,7 +75,8 @@ void FileSystemNavigator::show_content(const std::string& path) const {
     
     buffer << "\n\nНажмите любую клавишу..." << std::flush;
     
-    ui_.draw_menu("Просмотр файла", {{path, ""}}, 0);
+    ui_.draw_menu("Просмотр файла", {MenuItem{path}}, 0, 0);
+
     std::cout << buffer.str();
     
     while(ui_.get_key_input() == -1) {
@@ -84,6 +85,6 @@ void FileSystemNavigator::show_content(const std::string& path) const {
 }
 
 void FileSystemNavigator::show_error(const std::string& message) const {
-    ui_.draw_menu("Ошибка", {{message, ""}}, 0);
+    ui_.draw_menu("Ошибка", {MenuItem{message}}, 0, 0);
     std::this_thread::sleep_for(2s);
 }
