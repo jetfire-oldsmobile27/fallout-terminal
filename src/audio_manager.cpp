@@ -20,7 +20,6 @@ AudioManager::AudioManager() : rng_(std::random_device{}()) {
 
 AudioManager::~AudioManager() {
     if(initialized_) {
-        cleanup();
         Mix_CloseAudio();
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
     }
@@ -34,46 +33,37 @@ void AudioManager::load_sounds() {
         "sounds/click7.wav", "sounds/click8.wav"
     };
 
+    click_sounds_.reserve(click_files.size());
+
     for (const auto& file : click_files) {
-        Mix_Chunk* sound = Mix_LoadWAV(file.c_str());
-        if (sound) {
-            click_sounds_.push_back(sound);
+        if (Mix_Chunk* sound = Mix_LoadWAV(file.c_str())) {
+            click_sounds_.emplace_back(sound, Mix_FreeChunk);
         } else {
             std::cerr << "Failed to load click sound: " << file << "\n";
         }
     }
 
-    select_sound_ = Mix_LoadWAV("sounds/select.wav");
-    back_sound_ = Mix_LoadWAV("sounds/back.wav");
-}
-
-void AudioManager::cleanup() {
-    for (auto sound : click_sounds_) {
-        Mix_FreeChunk(sound);
-    }
-    click_sounds_.clear();
-
-    if (select_sound_) Mix_FreeChunk(select_sound_);
-    if (back_sound_) Mix_FreeChunk(back_sound_);
+    select_sound_ = ChunkPtr(Mix_LoadWAV("sounds/select.wav"), Mix_FreeChunk);
+    back_sound_ = ChunkPtr(Mix_LoadWAV("sounds/back.wav"), Mix_FreeChunk);
 }
 
 void AudioManager::play_tick() const {
     if (!click_sounds_.empty()) {
         const Uint32 now = SDL_GetTicks();
-        if (now - last_tick_time_ > 20) { 
+        if (now - last_tick_time_ > 20) {
             std::uniform_int_distribution<size_t> dist(0, click_sounds_.size()-1);
-            Mix_PlayChannelTimed(-1, click_sounds_[dist(rng_)], 0, 50); 
+            Mix_PlayChannelTimed(-1, click_sounds_[dist(rng_)].get(), 0, 50);
             last_tick_time_ = now;
         }
     }
 }
 
 void AudioManager::play_select() const {
-    if (select_sound_) Mix_PlayChannel(-1, select_sound_, 0);
+    if (select_sound_) Mix_PlayChannel(-1, select_sound_.get(), 0);
 }
 
 void AudioManager::play_back() const {
-    if (back_sound_) Mix_PlayChannel(-1, back_sound_, 0);
+    if (back_sound_) Mix_PlayChannel(-1, back_sound_.get(), 0);
 }
 
 void AudioManager::play_tick_async() const {

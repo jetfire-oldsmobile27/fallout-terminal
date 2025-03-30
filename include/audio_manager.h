@@ -28,11 +28,12 @@ public:
 
 private:
     void load_sounds();
-    void cleanup();
 
-    std::vector<Mix_Chunk*> click_sounds_;
-    Mix_Chunk* select_sound_ = nullptr;
-    Mix_Chunk* back_sound_ = nullptr;
+    using ChunkPtr = std::unique_ptr<Mix_Chunk, decltype(&Mix_FreeChunk)>;
+    
+    std::vector<ChunkPtr> click_sounds_;
+    ChunkPtr select_sound_{nullptr, Mix_FreeChunk};
+    ChunkPtr back_sound_{nullptr, Mix_FreeChunk};
     
     bool initialized_ = false;
     mutable std::mt19937 rng_;

@@ -50,49 +50,48 @@ void TerminalUI::clear_screen() const
     std::cout << "\033[2J\033[1;1H" << std::flush;
 }
 
-void TerminalUI::draw_menu(const std::string &title,
-    const std::vector<MenuItem> &items,
+void TerminalUI::draw_menu(const std::string& title,
+    const std::vector<MenuItem>& items,
     size_t selected,
     size_t prev_selected) const {
+        
+thread_local std::string buffer;
+buffer.clear();
+const int term_width = get_terminal_width();
 
-const int current_width = get_terminal_width();
-if (last_term_width_ != current_width) {
-needs_initial_draw_ = true;
-last_term_width_ = current_width;
-}
+const std::string yellow_eq(term_width, '=');
+const std::string header_padding((term_width - Constants::HEADER.size()) / 2, ' ');
 
-std::stringstream buffer;
-const int& term_width = current_width;
-const size_t menu_lines = items.size() + 6; 
+buffer.reserve(1024);
 
-if (needs_initial_draw_ || items.size() != last_item_count_) {
-buffer << "\033[2J\033[H"; 
+if (needs_initial_draw_ || items.size() != last_item_count_ || term_width != last_term_width_) {
+buffer.append("\033[2J\033[H");
 needs_initial_draw_ = false;
 last_item_count_ = items.size();
+last_term_width_ = term_width;
 } else {
-buffer << "\033[H"; 
-for (size_t i = 0; i < menu_lines; ++i) {
-buffer << "\033[K\n"; 
+buffer.append("\033[H");
+for (size_t i = 0; i < items.size() + 6; ++i) {
+buffer.append("\033[K\n");
 }
-buffer << "\033[" << menu_lines << "A"; 
-} 
+buffer.append("\033[").append(std::to_string(items.size() + 6)).append("A");
+}
 
-buffer << Constants::YELLOW << std::string(term_width, '=') << Constants::RESET << "\n"
-<< std::string((term_width - Constants::HEADER.size()) / 2, ' ')
-<< Constants::GREEN << Constants::HEADER << Constants::RESET << "\n"
-<< Constants::YELLOW << std::string(term_width, '=') << Constants::RESET << "\n\n"
-<< Constants::GREEN << "> " << title << "\n\n";
+buffer.append(Constants::YELLOW).append(yellow_eq).append(Constants::RESET).append("\n")
+.append(header_padding).append(Constants::GREEN).append(Constants::HEADER)
+.append(Constants::RESET).append("\n")
+.append(Constants::YELLOW).append(yellow_eq).append(Constants::RESET)
+.append("\n\n> ").append(Constants::GREEN).append(title).append(Constants::RESET)
+.append("\n\n");
 
 for (size_t i = 0; i < items.size(); ++i) {
-buffer << (i == selected ? "  > " : "    ")
-<< items[i].name << "\033[K\n";
+buffer.append(i == selected ? "  > " : "    ")
+.append(items[i].name).append("\033[K\n");
 }
 
-buffer << "\n"
-<< Constants::YELLOW
-<< std::string(term_width, '=') << Constants::RESET << "\n";
+buffer.append("\n").append(Constants::YELLOW).append(yellow_eq).append(Constants::RESET).append("\n");
 
-std::cout << buffer.str() << std::flush;
+std::cout << buffer << std::flush;
 }
 
 int TerminalUI::get_terminal_width() const

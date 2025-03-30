@@ -3,19 +3,22 @@
 MenuItem MenuBuilder::build_from_json(const json::value& root_value) {
     MenuItem root;
     const auto& root_obj = root_value.as_object();
-    
-    if(root_obj.contains("name")) {
-        root.name = json::value_to<std::string>(root_obj.at("name"));
+
+    if (auto it = root_obj.find("name"); it != root_obj.end()) {
+        root.name = json::value_to<std::string>(it->value());
     }
-    
-    if(root_obj.contains("submenu")) {
-        for(const auto& item : root_obj.at("submenu").as_array()) {
+
+    if (auto it = root_obj.find("submenu"); it != root_obj.end()) {
+        const auto& arr = it->value().as_array();
+        root.submenu.reserve(arr.size());
+        
+        for (const auto& item : arr) {
             MenuItem child;
             parse_menu_item(item.as_object(), child);
-            root.submenu.push_back(child);
+            root.submenu.push_back(std::move(child));
         }
     }
-    
+
     return root;
 }
 
