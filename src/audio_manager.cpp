@@ -13,7 +13,7 @@ AudioManager::AudioManager() : rng_(std::random_device{}()) {
         std::cerr << "SDL mixer error: " << Mix_GetError() << "\n";
         return;
     }
-
+    std::cout << "Audio initialized successfully\n";
     load_sounds();
     initialized_ = true;
 }

@@ -2,10 +2,19 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 TerminalUI::TerminalUI() {
 #ifdef _WIN32
     hconsole_ = GetStdHandle(STD_OUTPUT_HANDLE);
+        
+    DWORD mode = 0;
+    GetConsoleMode(hconsole_, &mode);
+    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hconsole_, mode);
+
     GetConsoleMode(hconsole_, &original_mode_);
 #else
     tcgetattr(STDIN_FILENO, &original_settings_);
@@ -38,38 +47,40 @@ void TerminalUI::clear_screen() const {
 }
 
 void TerminalUI::draw_menu(const std::string& title,
-                         const std::vector<MenuItem>& items,
-                         size_t selected) const {
-    
-    if(items.empty()) return;
-    selected = (std::min)(selected, items.size() - 1);
-    std::stringstream buffer;
-    buffer << "\033[2J\033[1;1H";
-    
-    buffer << Constants::YELLOW
-          << std::string(get_terminal_width(), '=')
-          << Constants::RESET << "\n";
-    
-    const int header_pad = (get_terminal_width() - Constants::HEADER.size()) / 2;
-    buffer << std::string(header_pad, ' ')
-          << Constants::GREEN << Constants::HEADER << Constants::RESET << "\n";
-    
-    buffer << Constants::YELLOW
-          << std::string(get_terminal_width(), '=')
-          << Constants::RESET << "\n\n";
-    
-    buffer << Constants::GREEN << "> " << title << "\n\n";
-    
-    for (size_t i = 0; i < items.size(); ++i) {
-        buffer << (i == selected ? "  > " : "    ")
-              << items[i].name << "\n";
-    }
-    
-    buffer << "\n" << Constants::YELLOW
-          << std::string(get_terminal_width(), '=')
-          << Constants::RESET << "\n";
-    
-    std::cout << buffer.str() << std::flush;
+    const std::vector<MenuItem>& items,
+    size_t selected) const {
+if(items.empty()) return;
+selected = (std::min)(selected, items.size() - 1);
+std::stringstream buffer;
+
+buffer << "\033[H";
+
+buffer << Constants::YELLOW
+<< std::string(get_terminal_width(), '=')
+<< Constants::RESET << "\n";
+
+const int header_pad = (get_terminal_width() - Constants::HEADER.size()) / 2;
+buffer << std::string(header_pad, ' ')
+<< Constants::GREEN << Constants::HEADER << Constants::RESET << "\n";
+
+buffer << Constants::YELLOW
+<< std::string(get_terminal_width(), '=')
+<< Constants::RESET << "\n\n";
+
+buffer << Constants::GREEN << "> " << title << "\n\n";
+
+for (size_t i = 0; i < items.size(); ++i) {
+buffer << (i == selected ? "  > " : "    ")
+<< items[i].name << "\n";
+}
+
+buffer << "\n" << Constants::YELLOW
+<< std::string(get_terminal_width(), '=')
+<< Constants::RESET << "\n";
+
+buffer << "\033[J";
+
+std::cout << buffer.str() << std::flush;
 }
 
 int TerminalUI::get_terminal_width() const {
@@ -88,6 +99,7 @@ int TerminalUI::get_key_input() const {
     #ifdef _WIN32
     if (_kbhit()) {
         int ch = _getch();
+        std::cerr << "Key pressed: 0x" << std::hex << ch << "\n"; 
         if (ch == 0xE0 || ch == 0x00) { 
             switch (_getch()) {
                 case 72: return 'U';

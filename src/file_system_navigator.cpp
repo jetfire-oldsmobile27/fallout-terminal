@@ -1,5 +1,5 @@
 #include "file_system_navigator.h"
-#include <iostream> // Добавить в начало файла
+#include <iostream> 
 #include <fstream>
 #include <algorithm>
 #include <chrono>
@@ -9,6 +9,10 @@ using namespace std::chrono_literals;
 
 FileSystemNavigator::FileSystemNavigator(TerminalUI& ui, AudioManager& audio)
     : ui_(ui), audio_(audio) {}
+
+    std::vector<MenuItem> FileSystemNavigator::get_menu_items(const std::string& path) const {
+        return create_menu_items(path);
+    }
 
 std::vector<MenuItem> FileSystemNavigator::create_menu_items(const std::string& path) const {
     std::vector<MenuItem> items;
@@ -56,71 +60,30 @@ std::vector<MenuItem> FileSystemNavigator::create_menu_items(const std::string& 
     return items;
 }
 
-void FileSystemNavigator::navigate(const std::string& path) {
-    size_t selected = 0;
-    bool exit = false;
-    auto last_redraw = std::chrono::steady_clock::now();
-    std::vector<MenuItem> menu_items;
+
+void FileSystemNavigator::show_content(const std::string& path) const {
+    std::ifstream file(path);
+    std::stringstream buffer;
     
-    while (!exit) {
-        const auto now = std::chrono::steady_clock::now();
-        
-        if (now - last_redraw > 33ms) {
-            menu_items = create_menu_items(path);
-            ui_.draw_menu("Файловая система: " + path, menu_items, selected);
-            last_redraw = now;
-        }
-        
-        switch(ui_.get_key_input()) {
-            case 'U': 
-                if (selected > 0) {
-                    selected--;
-                    audio_.play_tick_async();
-                }
-                break;
-                
-            case 'D':
-                if (selected < menu_items.size() - 1) {
-                    selected++;
-                    audio_.play_tick_async();
-                }
-                break;
-                
-            case '\n': {
-                const auto& item = menu_items[selected];
-                if (item.function.find("filesystem ") == 0) {
-                    navigate(item.function.substr(11));
-                } else if (item.function.find("view_file ") == 0) {
-                    show_content(item.function.substr(10));
-                }
-                exit = true;
-                break;
-            }
-                
-            case 127:
-                exit = true;
-                break;
-        }
+    buffer << Constants::GREEN << "Содержимое файла:\n\n" << Constants::RESET;
+    
+    if (file) {
+        buffer << file.rdbuf();
+    } else {
+        buffer << "Ошибка открытия файла.\n";
+    }
+    
+    buffer << "\n\nНажмите любую клавишу..." << std::flush;
+    
+    ui_.draw_menu("Просмотр файла", {{path, ""}}, 0);
+    std::cout << buffer.str();
+    
+    while(ui_.get_key_input() == -1) {
         std::this_thread::sleep_for(10ms);
     }
 }
 
-void FileSystemNavigator::show_content(const std::string& path) const {
-    std::ifstream file(path);
-    if (!file) {
-        show_error("Ошибка открытия файла");
-        return;
-    }
-    
-    ui_.clear_screen();
-    std::cout << Constants::GREEN << "Содержимое файла:\n\n" << Constants::RESET;
-    std::cout << file.rdbuf() << "\n\nНажмите любую клавишу...";
-    getchar();
-}
-
 void FileSystemNavigator::show_error(const std::string& message) const {
-    ui_.clear_screen();
-    std::cerr << Constants::GREEN << "Ошибка: " 
-             << Constants::RESET << message << "\n";
-    getchar();
+    ui_.draw_menu("Ошибка", {{message, ""}}, 0);
+    std::this_thread::sleep_for(2s);
 }

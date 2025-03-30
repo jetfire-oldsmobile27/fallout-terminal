@@ -4,16 +4,17 @@
 #include <filesystem>
 #include <vector>
 
-class FileSystemNavigator {
+class FileSystemNavigator
+{
 public:
-    FileSystemNavigator(TerminalUI& ui, AudioManager& audio);
-    void navigate(const std::string& path);
+    FileSystemNavigator(TerminalUI &ui, AudioManager &audio);
+    std::vector<MenuItem> get_menu_items(const std::string &path) const;
+    void show_content(const std::string &path) const;
 
 private:
-    TerminalUI& ui_;
-    AudioManager& audio_;
-    
+    TerminalUI &ui_;
+    AudioManager &audio_;
+
+    void show_error(const std::string &message) const;
     std::vector<MenuItem> create_menu_items(const std::string& path) const;
-    void show_content(const std::string& path) const;
-    void show_error(const std::string& message) const;
 };

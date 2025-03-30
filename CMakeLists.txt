@@ -4,12 +4,11 @@ project(FalloutTerminal LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Conan автоматически добавит пути через CMakeDeps
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(Boost REQUIRED COMPONENTS json)
 
-add_executable(FalloutTerminal
+add_executable(${PROJECT_NAME}
     src/main.cpp
     src/audio_manager.cpp
     src/terminal_ui.cpp
@@ -18,32 +17,30 @@ add_executable(FalloutTerminal
     src/file_system_navigator.cpp
 )
 
-target_include_directories(FalloutTerminal PRIVATE
+target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(FalloutTerminal PRIVATE
+target_link_libraries(${PROJECT_NAME} PRIVATE
     Boost::json
     SDL2::SDL2
     SDL2_mixer::SDL2_mixer
 )
 
-# Копирование ресурсов (звуки)
 if(EXISTS ${CMAKE_SOURCE_DIR}/sounds)
-    add_custom_command(TARGET FalloutTerminal POST_BUILD
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            $<TARGET_FILE_DIR:FalloutTerminal>/sounds
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/sounds
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/sounds
-            $<TARGET_FILE_DIR:FalloutTerminal>/sounds
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/sounds
         COMMENT "Copying sounds directory"
         VERBATIM
     )
 endif()
 
-# Для Windows: автоматическое копирование DLL через Conan
 if(WIN32)
-    install(TARGETS FalloutTerminal
+    install(TARGETS ${PROJECT_NAME}
         RUNTIME_DEPENDENCY_SET runtime_deps
     )
 
