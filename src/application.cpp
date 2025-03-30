@@ -13,6 +13,7 @@ Application::Application()
     load_config();
 
     menu_stack_.push({"Главное меню", root_menu_.submenu});
+    //needs_redraw_ = true;
 }
 
 void Application::main_loop()
@@ -54,6 +55,7 @@ void Application::load_config()
         config_file.open(Constants::CONFIG_FILE);
     }
 
+    std::cerr << "Loaded menu items: " << root_menu_.submenu.size() << "\n";
     std::string config_content((std::istreambuf_iterator<char>(config_file)),
                                std::istreambuf_iterator<char>());
     try
@@ -91,7 +93,7 @@ void Application::generate_default_config() const
     exit_item["function"] = "exit";
     items.push_back(exit_item);
 
-    root["items"] = items;
+    root["submenu"] = items;
     std::ofstream output_file(Constants::CONFIG_FILE);
     output_file << json::serialize(root);
 }
